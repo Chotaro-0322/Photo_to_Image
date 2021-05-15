@@ -1,4 +1,5 @@
 # video_to_Image
+<<<<<<< HEAD
 
 ## Install dependent package
 ```
@@ -45,3 +46,8 @@ python create_photo_linear.py ./video/125C0003.MP4 photo/ 1
 </div>
 
 
+=======
+'''
+pip install mpeg-4
+'''
+>>>>>>> origin/main
