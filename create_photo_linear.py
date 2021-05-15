@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 import cv2
 import numpy as np
 
 from matplotlib import pyplot as plt
 import math
-from ishida.image import my_cv2
 import glob
+import argparse
 
 # パノラマ変換
 def panorama_ougi(img):
@@ -29,9 +30,10 @@ def panorama_ougi(img):
     # 射影する目標
     for r in range(0, width):
         for theta in range(0, pano_width):
+            #print("r, theta is ", r, theta)
             x = (r + h_han*0.5) * np.cos(np.deg2rad(theta*(360/pano_width))) + h_han # 元の座標を計算.
             y = (r + h_han*0.5) * np.sin(np.deg2rad(theta*(360/pano_width))) + h_han
-            print(x, y)
+            #print(x, y)
             dx = x - int(x) #微小値の計算
             dy = y - int(y)
 
@@ -48,11 +50,11 @@ def panorama_ougi(img):
     return dst.astype(np.float32)
 
 # 3秒ごとにTrueを出力するプログラム
-def sec_count(cap_sec, max_sec):
+def sec_count(cap_sec, max_sec, get_sec = 1):
     cap_sec = math.floor(cap_sec)
     if cap_sec != max_sec:
         max_sec += 1
-        if max_sec%3 == 0:
+        if max_sec%get_sec == 0:
             return True, max_sec
         else:
             return False, max_sec
@@ -60,9 +62,16 @@ def sec_count(cap_sec, max_sec):
         return False, max_sec
 
 # ------------------------------------------------main-------------------------------------------------------------
+parser = argparse.ArgumentParser()
+parser.add_argument("in_path", help="Please set a path of fileto video")
+parser.add_argument("out_path", help="Please set a path of folder to save")
+parser.add_argument("sec", help="Please set second of dividing")
 
+args = parser.parse_args()
 
-cap = cv2.VideoCapture('./20.10.12_videos/125_0005.MP4')
+sec = float(args.sec)
+
+cap = cv2.VideoCapture(args.in_path)
 
 ret, frame = cap.read()
 
@@ -73,15 +82,15 @@ index_of_photo = 1
 
 while(ret == True):
     ret, frame = cap.read()
-    bool_of_fivesec, max_sec = sec_count(cap.get(cv2.CAP_PROP_POS_MSEC)/1000, max_sec)
-    if bool_of_fivesec == True:
+    bool_of_sec, max_sec = sec_count(cap.get(cv2.CAP_PROP_POS_MSEC)/1000, max_sec, sec)
+    if bool_of_sec == True:
         img = panorama_ougi(frame)
         img = img.astype(np.uint8)
         
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        cv2.imwrite('./20.10.14_traindata/1/20.10.14_1_{}.jpg'.format(str(index_of_photo).zfill(4)), img)
-        print('./20.10.14_traindata/1/20.10.14_1_{}.jpg was saved.'.format(str(index_of_photo).zfill(4)))
+        cv2.imwrite(args.out_path + '/{}.jpg'.format(str(index_of_photo).zfill(4)), img)
+        print(args.out_path + '/{}.jpg was saved.'.format(str(index_of_photo).zfill(4)))
         index_of_photo += 1
 print('Finished!!')
 
